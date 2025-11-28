@@ -1,5 +1,5 @@
 # RobotLoad-Qlearning
-Bu proje, fabrika ortamında gezen bir robotun farklı konumlardaki yükleri toplama, engellerden kaçınmaya çalışmaktadır. Robot maksimum 2 yük taşıma kapasitesine sahiptir ve topladığı yükleri boşaltıma noktasına teslim etme görevini pekiştirmeli öğrenme ile çözmektedir. Yani robot, deneme-yanılma ile en kısa sürede tüm yükleri toplayarak en uygun hareket stratejisini öğrenmektedir.
+Bu proje, fabrika ortamında gezen bir robotun farklı konumlardaki yükleri toplamaya, engellerden kaçınmaya çalışmaktadır. Robot maksimum 2 yük taşıma kapasitesine sahiptir ve topladığı yükleri boşaltıma noktasına teslim etme görevini pekiştirmeli öğrenme ile çözmektedir. Yani robot, deneme-yanılma ile en kısa sürede tüm yükleri toplayarak en uygun hareket stratejisini öğrenmektedir.
 
 <img src="robot.gif" width="200" alt="Taxi Environment Test GIF">
 
@@ -30,7 +30,7 @@ Robotun 6 farklı eylem gerçekleştirebilir:
 * Yük Boşaltma 
 
 ### Bit Maskeleme ile Yük Takibi
-Her yükün toplanma durumu bir bit maskesi ile takip edilmektedir. 7-bit'lik bir maske kullanılarak her bit bir yükün durumunu temsil eder. Bu maskeleme ile **Yük Alma** eyleminde, yükün alınıp alınmadığını durumuyla kontroller gerçekleştirilir. 
+Her yükün toplanma durumu bir bit maskesi ile takip edilmektedir. 7-bit'lik bir maske kullanılarak her bit bir yükün durumunu temsil eder. Bu maskeleme ile **Yük Alma** eyleminde, yükün alınıp alınmadığını durumunu ve ilgili yük alındıysa ilgili bitin değerini değiştirmek üzere işlemler gerçekleştirilir. Örneğin, 3. ve 5. ürünler toplanmışsa 0010100 bit dizilimi ile maskelenmektedir.
 
 ## Ödül – Ceza Sistemi
 Yukardaki eylemlere göre ödül veya ceza belirlenir.
@@ -50,6 +50,8 @@ Performansı iyileştirmek için kullanılan parametre ayarları:
 * epsilon = 0.5 (Kesif Orani)
 * epsilon_decay = 0.03 (Azalma miktarı)
 * epsilon_min = 0.05 (Minimum keşif)
+
+Keşif oranı minimum değerin altına düşmediği sürece her 5000 iterasyonda 0.03 azaltılır.
 
 Toplam 400.000 bölüm (episode) çalıştırılmıştır.
 
