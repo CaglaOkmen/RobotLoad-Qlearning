@@ -4,14 +4,14 @@ Bu proje, fabrika ortamında gezen bir robotun farklı konumlardaki yükleri top
 <img src="robot.gif" width="200" alt="Taxi Environment Test GIF">
 
 ## Ortam Tasarımı
-* 7x7’lik bir harita oluşturulmuştur.
+* 7x7’lik bir (grid) harita oluşturulmuştur.
 * 7 tane Makina konumu yani yasaklı bölge belirlenmiştir.
 * 7 farklı bölgede yükler bulunmaktadır
 * Robotun başlangıç noktası ve Yük boşaltım noktası sabittir.
 * Robotun Kapasite sınırı 2'dir. 
 
 ### Durum Uzayı Hesaplama
-Ortamın toplam durum sayısı; robotun konumu (7x7 ızgara), yüklerin toplanma durumu (7 yükün her biri için alındı/alınmadı durumu $$2^7$$) ve robotun anlık yük kapasitesi (0: Bos, 1, 2: Dolu) kombinasyonlarıyla hesaplanmaktadır.
+Ortamın toplam durum sayısı; robotun konumu (7x7), yüklerin toplanma durumu (7 yükün her biri için alındı/alınmadı durumu $$2^7$$) ve robotun anlık yük kapasitesi (0: Bos, 1, 2: Dolu) kombinasyonlarıyla hesaplanmaktadır.
 
 $$
 \text{Durum Uzayı} = (7 \times 7) \times 2^7 \times 3 = \mathbf{18,816} \text{ Toplam Durum Vardır.}
@@ -30,7 +30,9 @@ Robotun 6 farklı eylem gerçekleştirebilir:
 * Yük Boşaltma 
 
 ### Bit Maskeleme ile Yük Takibi
-Her yükün toplanma durumu bir bit maskesi ile takip edilmektedir. 7-bit'lik bir maske kullanılarak her bit bir yükün durumunu temsil eder. Bu maskeleme ile **Yük Alma** eyleminde, yükün alınıp alınmadığını durumunu ve ilgili yük alındıysa ilgili bitin değerini değiştirmek üzere işlemler gerçekleştirilir. Örneğin, 3. ve 5. ürünler toplanmışsa 0010100 bit dizilimi ile maskelenmektedir.
+Her yükün toplanma durumu bir bit maskesi ile takip edilmektedir. 7-bit'lik bir maske kullanılarak her bit bir yükün durumunu temsil eder. Bu maskeleme ile **Yük Alma** eyleminde, yükün alınıp alınmadığını durumunu ve ilgili yük alındıysa ilgili bitin değerini değiştirmek üzere işlemler gerçekleştirilir. 
+
+Örneğin, 3. ve 5. yükler toplanmışsa **0010100** bit dizilimi ile gösterilmektedir.
 
 ## Ödül – Ceza Sistemi
 Yukardaki eylemlere göre ödül veya ceza belirlenir.
