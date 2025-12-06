@@ -1,5 +1,5 @@
 # RobotLoad-Qlearning
-Bu proje, fabrika ortamında gezen bir robotun farklı konumlardaki yükleri toplamaya, engellerden kaçınmaya çalışmaktadır. Robot maksimum 2 yük taşıma kapasitesine sahiptir ve topladığı yükleri boşaltıma noktasına teslim etme görevini pekiştirmeli öğrenme ile çözmektedir. Yani robot, deneme-yanılma ile en kısa sürede tüm yükleri toplayarak en uygun hareket stratejisini öğrenmektedir.
+Derin Pekiştirmeli Öğrenme dersi için vize projesinde yapılan ödevin reposudur. Bu projede, fabrika ortamında gezen bir robotun farklı konumlardaki yükleri en kısa sürede toplamaya ve engellerden kaçınmaya çalışmaktadır. Robot maksimum 2 yük taşıma kapasitesine sahiptir ve topladığı yükleri boşaltıma noktasına en kısa sürede teslim etme görevini pekiştirmeli öğrenme ile çözmektedir. Yani robot, deneme-yanılma ile en kısa sürede tüm yükleri toplayarak en uygun hareket stratejisini öğrenmektedir.
 
 <img src="robot.gif" width="200" alt="Taxi Environment Test GIF">
 
@@ -17,6 +17,10 @@ $$
 \text{Durum Uzayı} = (7 \times 7) \times 2^7 \times 3 = \mathbf{18,816} \text{ Toplam Durum Vardır.}
 $$
 
+## Encode ve Decode 
+Encode işleminde 4 bileşenli durum tek bir tamsayı değerine dönüştürülür. (tüm durumlar için 0 ile 18,815 tam sayı aralığında sayı üretilir.) Bu sayede Q-tablosunda doğrudan tam sayı değerleriyle işlemler yapılır.
+
+Decode işleminde ise encode işlemindeki dönüştürülen tam sayı değerini tekrar 4 bileşene döndürür. Görselleştirme aşaması için kullanılır.
 ## Geçiş Tablosu (Transition Table) ve Q-Table
 Her durum ve her eylem için olası geçişler (Hedef durumlar, Ödül ve Ceza, Oyun bitti (Termination) Bilgisi) önceden hesaplanmıştır. Ajan eğitimi sırasında 18,816 satır ve 6 sütundan (eylemler) oluşan devasa bir Q-Tablosu optimize edilir.
 
@@ -45,6 +49,11 @@ Yukardaki eylemlere göre ödül veya ceza belirlenir.
 * Başarılı Çift yük boşaltma: +15
 * Tüm yükler toplandı: +25 Oyun Bitti!
 
+Bu sayede robotun gereksiz adımlardan kaçınması, olasılıksız hamlelerin yapılmaması ve tek tek yük boşaltma eyiliminden kaçınarak kapasitesini etkili bir şekilde kullanması sağlanmaktadır.
+
+## Kodun Çalışma Mantığı
+Q-Learning için hiperparametreler tanımlanır. RobotEnv sınıfı başlatılır. Harita yüklenir, durum uzayı tanımlanır ve ardından geçiş tablosu oluşturulur. Eğitim sırasında her döngüde ortam sıfırlanır rastgele veya Q-tablosundan eylem seçilir. Ortamda bu eylemi uygulanır ve aldığı ödül ile Q-tablosu güncellenir. Tüm yükler toplanınca döngü sonlandırılır.
+
 ## Eğitim (Q-Learning)
 Performansı iyileştirmek için kullanılan parametre ayarları:
 * alpha = 0.1 (Ogrenme Orani)
@@ -57,7 +66,7 @@ Keşif oranı minimum değerin altına düşmediği sürece her 5000 iterasyonda
 
 Toplam 400.000 bölüm (episode) çalıştırılmıştır.
 
-**Q-Tablosu** oluşturulur (Tablonun başlangıçta tüm değerleri 0 dır.) ve ajan her adımda keşfederek tabloyu güncelleyerek eğitilir. Daha sonrasında ajan bu tabloya bakarak hangi durumda ne yapacağını belirler.
+**Q-Tablosu** oluşturulur (Tablonun başlangıçta tüm değerleri 0 dır.) ve ajan her adımda keşfederek tabloyu güncelleyerek eğitilir. Daha sonrasında ajan epsilon oranına göre ya rastgele yada bu tabloya yapacagı eylemi seçer.
 
 
 Her 1000 episode’de alınan toplam ödül kaydedilmiş ve aşağıdaki eğitim grafiği oluşturulmuştur.
@@ -65,7 +74,8 @@ Her 1000 episode’de alınan toplam ödül kaydedilmiş ve aşağıdaki eğitim
 <img src="Reward_Train.png" alt="Eğitim Ödül Grafiği" width="500" height="300"/>
 
 ## Test 
-Eğitilen Ajanın adım adım hareketleri görselleştirilerek test edilmiştir. Bu görüntüler birleştirilerek aşağıdaki GIF oluşturulmuştur. 
+Eğitilen Ajanın adım adım hareketleri görselleştirilerek test edilmiştir. Burada rastgelelik yoktur ajan Q-tablosunu kullanarak ilerler. Her adım görselleştirilir ve görüntüler birleştirilerek aşağıdaki GIF oluşturulmuştur. 
+
 Son durumda toplam Ödül 31'dir. Toplam adım ise 61'dir.
 
 <img src="robot.gif" width="400" alt="Taxi Environment Test GIF">
