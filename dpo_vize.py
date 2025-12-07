@@ -217,17 +217,20 @@ def train_robot(env, episodes):
     # Parametreler
     alpha = 0.1 # Ogrenme Orani
     gamma = 0.99 # Gelecek odaklilik
-    epsilon = 0.5 # Kesif Orani
+    epsilon = 0.9 # Kesif Orani
     epsilon_decay = 0.03 # Epsilon azalma miktarı
     epsilon_min = 0.05 # Minimum Epsilon
     
     Q = np.zeros((env.num_states, env.action_space.n))
     print(f"Egitim Başladı... Toplam Durum Sayısı: {env.num_states}")
     reward_list = []
+    step_list = []
+    epsilon_list = []
     for ep in range(episodes):
         state, _ = env.reset()
         done = False
         total_reward = 0
+        step_count = 0
         while not done:
             if random.random() < epsilon:
                 action = env.action_space.sample()
@@ -239,10 +242,12 @@ def train_robot(env, episodes):
             Q[state, action] += alpha * (reward + gamma * best_next_action - Q[state, action])
             state = next_state
             total_reward += reward
+            step_count += 1
         if (ep + 1) % 1000 == 0:
-            reward_list.append(total_reward)
+            reward_list.append(total_reward) # Toplam odul
+            step_list.append(step_count) # Adım sayısı
         if (ep + 1) % 5000 == 0:
-            reward_list.append(total_reward)
+            epsilon_list.append(epsilon) # Epsilon degeri
             if epsilon > epsilon_min:
                 epsilon -= epsilon_decay
             print(f"Egitim Ep {ep + 1}/{episodes} tamamlandı.")
@@ -253,6 +258,20 @@ def train_robot(env, episodes):
     plt.ylabel("Reward (1000 episode aralıklı)")
     plt.title("Training Reward")
     plt.savefig("Reward_Train.png", dpi=150)
+
+    # Adım sayısı grafigi
+    plt.plot(np.arange(len(step_list))*1000, step_list)
+    plt.xlabel("Episode")
+    plt.ylabel("Adım Sayısı (1000 episode aralıklı)")
+    plt.title("Training Step Count")
+    plt.savefig("Step_Count.png", dpi=150)
+    
+    # Epsilon grafigi
+    plt.plot(np.arange(len(epsilon_list))*5000, epsilon_list)
+    plt.xlabel("Episode")
+    plt.ylabel("Epsilon Değeri (5000 episode aralıklı)")
+    plt.title("Epsilon Azalma Grafiği")
+    plt.savefig("Epsilon_Decay.png", dpi=150)
     return Q
 
 # Robotun Test
@@ -292,4 +311,5 @@ def test_robot(env, Q, episodes=3):
 if __name__ == "__main__":
     env = RobotEnv()
     q_table = train_robot(env, episodes=400000)
+
     test_robot(env, q_table, episodes=5)
