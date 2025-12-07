@@ -86,6 +86,11 @@ Her 1000 episode’de alınan toplam ödül ve toplam adım sayısı kaydedilmi�
 ## Test 
 Eğitilen Ajanın adım adım hareketleri görselleştirilerek test edilmiştir. Burada rastgelelik yoktur ajan Q-tablosunu kullanarak ilerler. Her adım görselleştirilir ve görüntüler birleştirilerek aşağıdaki GIF oluşturulmuştur. 
 
+* **Sarı:** Robotun konumu
+* **Mavi:** Yüklerin konumu
+* **Gri:** Robot başlangıç konumu ve Yük boşaltma alanı
+* **Siyah:** Girilmez hücreler (Yasaklı)
+
 Son durumda toplam Ödül 31'dir. Toplam adım ise 69'dir.
 
 <img src="robot.gif" width="400" alt="Taxi Environment Test GIF">
