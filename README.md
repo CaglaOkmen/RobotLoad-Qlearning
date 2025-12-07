@@ -17,12 +17,17 @@ $$
 \text{Durum Uzayı} = (7 \times 7) \times 2^7 \times 3 = \mathbf{18,816} \text{ Toplam Durum Vardır.}
 $$
 
+## Bit Maskeleme ile Yük Takibi
+Her yükün toplanma durumu bir bit maskesi ile takip edilmektedir. 7-bit'lik bir maske kullanılarak her bit bir yükün durumunu temsil eder. Bu maskeleme ile **Yük Alma** eyleminde, yükün alınıp alınmadığını durumunu ve ilgili yük alındıysa ilgili bitin değerini değiştirmek üzere işlemler gerçekleştirilir. 
+
+Örneğin, 3. ve 5. yükler toplanmışsa **0010100** bit dizilimi ile gösterilmektedir.
+
 ## Encode ve Decode 
 Encode işleminde 4 bileşenli durum tek bir tamsayı değerine dönüştürülür. (tüm durumlar için 0 ile 18,815 tam sayı aralığında sayı üretilir.) Bu sayede Q-tablosunda doğrudan tam sayı değerleriyle işlemler yapılır.
 
 Decode işleminde ise encode işlemindeki dönüştürülen tam sayı değerini tekrar 4 bileşene döndürür. Görselleştirme aşaması için kullanılır.
 ## Geçiş Tablosu (Transition Table) ve Q-Table
-Her durum ve her eylem için olası geçişler (Hedef durumlar, Ödül ve Ceza, Oyun bitti (Termination) Bilgisi) önceden hesaplanmıştır. Ajan eğitimi sırasında 18,816 satır ve 6 sütundan (eylemler) oluşan devasa bir Q-Tablosu optimize edilir.
+Her durum (18,815) ve her eylem (6) için olası geçişler (Hedef durumlar, Ödül ve Ceza, Oyun bitti (Termination) Bilgisi) önceden hesaplanmıştır. Ajan eğitimi sırasında 18,816 satır ve 6 sütundan (eylemler) oluşan devasa bir Q-Tablosu optimize edilir.
 
 ## Eylemler 
 Robotun 6 farklı eylem gerçekleştirebilir:
@@ -32,11 +37,6 @@ Robotun 6 farklı eylem gerçekleştirebilir:
 * Sola 
 * Yük Alma 
 * Yük Boşaltma 
-
-### Bit Maskeleme ile Yük Takibi
-Her yükün toplanma durumu bir bit maskesi ile takip edilmektedir. 7-bit'lik bir maske kullanılarak her bit bir yükün durumunu temsil eder. Bu maskeleme ile **Yük Alma** eyleminde, yükün alınıp alınmadığını durumunu ve ilgili yük alındıysa ilgili bitin değerini değiştirmek üzere işlemler gerçekleştirilir. 
-
-Örneğin, 3. ve 5. yükler toplanmışsa **0010100** bit dizilimi ile gösterilmektedir.
 
 ## Ödül – Ceza Sistemi
 Yukardaki eylemlere göre ödül veya ceza belirlenir.
@@ -51,31 +51,41 @@ Yukardaki eylemlere göre ödül veya ceza belirlenir.
 
 Bu sayede robotun gereksiz adımlardan kaçınması, olasılıksız hamlelerin yapılmaması ve tek tek yük boşaltma eyiliminden kaçınarak kapasitesini etkili bir şekilde kullanması sağlanmaktadır.
 
-## Kodun Çalışma Mantığı
-Q-Learning için hiperparametreler tanımlanır. RobotEnv sınıfı başlatılır. Harita yüklenir, durum uzayı tanımlanır ve ardından geçiş tablosu oluşturulur. Eğitim sırasında her döngüde ortam sıfırlanır rastgele veya Q-tablosundan eylem seçilir. Ortamda bu eylemi uygulanır ve aldığı ödül ile Q-tablosu güncellenir. Tüm yükler toplanınca döngü sonlandırılır.
+## Eylem-Ödül Mantığı
+* Robot her adımda -1 ceza puanı alır.
+* 6 farklı eylemin ilk 4 eyleminde (Aşağı, Yukarı, Sağa, Sola) yasaklı bölgeye girmiş mi diye kontrol edilir girdiyse -5 ceza puanı alır girmediyse ceza almadan ilerler.
+* Robot Yük Alma eylemini gerçekleştirirse ve yanlış yerden bir yük almaya çalışıyorsa -10 ceza puanı, doğru yerden yük alıyorsa +2 ödül puanı almaktadır. Bu küçük ödüllerle ajan yük toplamaya teşfik edilmektedir.
+* Ajan Yük Bosaltma eylemini gerçekleştirirse ve yük boşaltma noktası dışında bir yere boşaltırsa -10 ceza puanı almaktadır. Robot eğer topladığı yükü yük boşaltma noktasına bırakırsa ve kapasitesini verimli kullanırsa (Yani 2 yük bırakırsa) +15 ödül puanı, tek bir yük birakırsa ise +5 ödül puanı kazanmaktadır. Bu sayede ajan kapastesini verimli bir şekilde kullanmayı öğrenmektedir.
+* Tüm yükler toplandığında oyun bitmekte ve ajan +25 ödül puanı kazanmaktadır.
 
 ## Eğitim (Q-Learning)
 Performansı iyileştirmek için kullanılan parametre ayarları:
 * alpha = 0.1 (Ogrenme Orani)
 * gamma = 0.99 (Gelecek odaklilik)
-* epsilon = 0.5 (Kesif Orani)
+* epsilon = 0.9 (Kesif Orani)
 * epsilon_decay = 0.03 (Azalma miktarı)
 * epsilon_min = 0.05 (Minimum keşif)
 
-Keşif oranı minimum değerin altına düşmediği sürece her 5000 iterasyonda 0.03 azaltılır.
+Keşif oranı minimum değerin altına düşmediği sürece her 5000 iterasyonda 0.03 azaltılır. Bu düşüş ile ajan daha az keşif yapmakta ve Q-tablosundan eylem seçme olasılığı artmaktadır.
 
-Toplam 400.000 bölüm (episode) çalıştırılmıştır.
+<img src="Epsilon_Decay.png" alt="Eğitim Epsilon değeri azalması Grafiği" width="300"/>
 
-**Q-Tablosu** oluşturulur (Tablonun başlangıçta tüm değerleri 0 dır.) ve ajan her adımda keşfederek tabloyu güncelleyerek eğitilir. Daha sonrasında ajan epsilon oranına göre ya rastgele yada bu tabloya yapacagı eylemi seçer.
+Toplam 300.000 bölüm (episode) çalıştırılmıştır.
+
+**Q-Tablosu** oluşturulur (Tablonun başlangıçta tüm değerleri 0 dır.) ve ajan her adımda keşfederek tabloyu Bellman Optimalite denklemine göre güncelleyerek öğrenir. Daha sonrasında ajan epsilon oranına göre ya rastgele yada bu tabloya yapacagı eylemi seçer.
+
+### Kodun Çalışma Mantığı
+Q-Learning için hiperparametreler tanımlanır. RobotEnv sınıfı başlatılır. Harita yüklenir, durum uzayı tanımlanır ve ardından geçiş tablosu oluşturulur. Eğitim sırasında her döngüde ortam sıfırlanır rastgele veya Q-tablosundan eylem seçilir. Ortamda bu eylemi uygulanır ve aldığı ödül ile Q-tablosu güncellenir. Tüm yükler toplanınca döngü sonlandırılır.
 
 
-Her 1000 episode’de alınan toplam ödül kaydedilmiş ve aşağıdaki eğitim grafiği oluşturulmuştur.
+Her 1000 episode’de alınan toplam ödül ve toplam adım sayısı kaydedilmiştir. Aşağıdaki grafiklerde bu değerlerin değişimi gösterilmektedir.
 
-<img src="Reward_Train.png" alt="Eğitim Ödül Grafiği" width="500" height="300"/>
+<img src="Reward_Train.png" alt="Eğitim Ödül Grafiği" width="500"/> <img src="Step_Count.png" alt="Eğitim Adım Sayısı Grafiği" width="500"/>
+
 
 ## Test 
 Eğitilen Ajanın adım adım hareketleri görselleştirilerek test edilmiştir. Burada rastgelelik yoktur ajan Q-tablosunu kullanarak ilerler. Her adım görselleştirilir ve görüntüler birleştirilerek aşağıdaki GIF oluşturulmuştur. 
 
-Son durumda toplam Ödül 31'dir. Toplam adım ise 61'dir.
+Son durumda toplam Ödül 31'dir. Toplam adım ise 69'dir.
 
 <img src="robot.gif" width="400" alt="Taxi Environment Test GIF">
